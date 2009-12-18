@@ -1,21 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
-# Copyright (C) 2004-2009 Edgewall Software
-# Copyright (C) 2004-2007 Christopher Lenz <cmlenz@gmx.de>
-# Copyright (C) 2005 Matthew Good <trac@matt-good.net>
-# All rights reserved.
-#
-# This software is licensed as described in the file COPYING, which
-# you should have received as part of this distribution. The terms
-# are also available at http://trac.edgewall.org/wiki/TracLicense.
-#
-# This software consists of voluntary contributions made by many
-# individuals. For the exact contribution history, see the revision
-# history and logs, available at http://trac.edgewall.org/log/.
-#
-# Author: Christopher Lenz <cmlenz@gmx.de>
-#         Matthew Good <trac@matt-good.net>
 
 import os
 import sys
@@ -27,19 +10,21 @@ from trac.web.auth import BasicAuthentication#, DigestAuthentication
 
 class InputWrapper(object):
 
-	def __init__(self, connection):
+	def __init__( self, connection ):
 		self.connection = connection
 
 	def close(self):
 		pass
 
-	#def read(self, size=-1):
-	#	return self.connection.post_body[ :size ]
+	def read( self, size=-1 ):
+		return self.connection.request.post_body[ :size ]
 
-	#def readline(self, size=-1):
+	def readline( self, size=-1 ):
+		print "here2"
 	#	return self.req.readline(size)
 
-	#def readlines(self, hint=-1):
+	def readlines( self, hint=-1 ):
+		print "here3"
 	#	return self.req.readlines(hint)
 
 class ZimrTracGateway( WSGIGateway ):
@@ -51,13 +36,20 @@ class ZimrTracGateway( WSGIGateway ):
 
 		for key in connection.request.headers.keys():
 			environ[ "HTTP_" + key.upper() ] = connection.request.headers[ key ]
-
 		environ[ 'SERVER_PORT' ] = 80
 		environ[ 'SERVER_NAME' ] = "localhost"
 		environ[ 'REQUEST_METHOD' ] = "get"
 		environ[ 'REQUEST_URI' ] = connection.request.url
+		environ[ 'QUERY_STRING' ] = "&".join( [ "%s=%s" % ( key, urllib.quote( val ) ) for key, val in connection.request.params.items() ] )
 		environ[ 'PATH_INFO' ] = connection.request.url
 		environ[ 'SCRIPT_NAME' ] = "" #root uri
+		#environ['SERVER_PROTOCOL'] = self.request_version
+		environ[ 'REQUEST_METHOD' ] = connection.request.method
+		#environ['REMOTE_HOST'] = host
+		#environ['REMOTE_ADDR'] = self.client_address[0]
+		environ[ 'CONTENT_TYPE' ] = connection.request.headers[ 'Content-Type' ]
+		environ[ 'CONTENT_LENGTH' ] = connection.request.headers[ 'Content-Length' ]
+
 		WSGIGateway.__init__( self, environ, InputWrapper( connection ),
 							 _ErrorsWrapper( lambda x: req.log_error( x ) ) )
 		self.connection = connection
