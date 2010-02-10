@@ -33,17 +33,17 @@ class ZimrTracGateway( WSGIGateway ):
 
 		environ[ 'trac.web.frontend' ] = 'zimr'
 		environ[ 'trac.web.version' ] = '0.1'
-
+		environ[ 'trac.base_url' ] = connection.website.protocol + connection.website.url
 		for key in connection.request.headers.keys():
 			environ[ "HTTP_" + key.upper() ] = connection.request.headers[ key ]
-		environ[ 'SERVER_PORT' ] = 80
+		#environ[ 'SERVER_PORT' ] = 80
 		environ[ 'SERVER_NAME' ] = "localhost"
 		environ[ 'REQUEST_METHOD' ] = "get"
 		environ[ 'REQUEST_URI' ] = connection.request.url
 		environ[ 'QUERY_STRING' ] = "&".join( [ "%s=%s" % ( key, urllib.quote( val ) ) for key, val in connection.request.params.items() ] )
 		environ[ 'PATH_INFO' ] = "/" + connection.request.url
 		environ[ 'SCRIPT_NAME' ] = "" #root uri
-		environ[ 'SERVER_PROTOCOL'] = connection.website.protocol
+		#environ[ 'SERVER_PROTOCOL' ] = connection.website.protocol
 		environ[ 'REQUEST_METHOD' ] = connection.request.method
 		#environ['REMOTE_HOST'] = host
 		#environ['REMOTE_ADDR'] = self.client_address[0]
