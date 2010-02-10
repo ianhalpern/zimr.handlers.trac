@@ -43,7 +43,7 @@ class ZimrTracGateway( WSGIGateway ):
 		environ[ 'QUERY_STRING' ] = "&".join( [ "%s=%s" % ( key, urllib.quote( val ) ) for key, val in connection.request.params.items() ] )
 		environ[ 'PATH_INFO' ] = "/" + connection.request.url
 		environ[ 'SCRIPT_NAME' ] = "" #root uri
-		#environ['SERVER_PROTOCOL'] = self.request_version
+		environ[ 'SERVER_PROTOCOL'] = connection.website.protocol
 		environ[ 'REQUEST_METHOD' ] = connection.request.method
 		#environ['REMOTE_HOST'] = host
 		#environ['REMOTE_ADDR'] = self.client_address[0]
