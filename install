@@ -1,0 +1,2 @@
+#!/bin/bash
+cp trac_ext.py /usr/lib/python2.6/zimr/

@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-import os
-import sys
-import pkg_resources
-import urllib
+import os, sys, pkg_resources, urllib, base64
 from trac import __version__ as VERSION
 from trac.web.wsgi import WSGIGateway, _ErrorsWrapper
 from trac.web.auth import BasicAuthentication#, DigestAuthentication
@@ -81,16 +78,19 @@ class ZimrTracGateway( WSGIGateway ):
 
 class AuthenticationMiddleware(object):
 
-	def __init__( self, application, auth ):
+	def __init__( self, application ):
 		self.application = application
-		self.auth = auth
 
 	def __call__( self, environ, start_response ):
-		path_info = environ.get('PATH_INFO', '')
-		path_parts = filter(None, path_info.split('/'))
-		if len(path_parts) and path_parts[0] == 'login':
-			remote_user = self.auth.do_auth(environ, start_response)
+		header = environ.get('HTTP_AUTHORIZATION')
+		if header:
+			remote_user = None
+			if header.startswith('Basic'):
+				remote_user = base64.b64decode(header[6:]).split(':')[0]
 			if not remote_user:
+				start_response('401 Unauthorized',
+					[('WWW-Authenticate', 'Basic realm="Secure Area"'),
+						('Content-Length', '0')])('')
 				return []
 			environ[ 'REMOTE_USER' ] = remote_user
 			environ[ 'HTTP_COOKIE' ] = None
@@ -105,7 +105,6 @@ def connection_handler( connection ):
 	gateway = ZimrTracGateway( connection, { "trac.env_path": project_path } )
 	from trac.web.main import dispatch_request
 	gateway.run( AuthenticationMiddleware(
-		dispatch_request,
-		BasicAuthentication( os.path.abspath( os.path.join( project_path, ".htpasswd" ) ), connection.website.url )
+		dispatch_request
 	) )
 
