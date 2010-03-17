@@ -82,18 +82,22 @@ class AuthenticationMiddleware(object):
 		self.application = application
 
 	def __call__( self, environ, start_response ):
-		header = environ.get('HTTP_AUTHORIZATION')
-		if header:
-			remote_user = None
-			if header.startswith('Basic'):
-				remote_user = base64.b64decode(header[6:]).split(':')[0]
-			if not remote_user:
-				start_response('401 Unauthorized',
-					[('WWW-Authenticate', 'Basic realm="Secure Area"'),
-						('Content-Length', '0')])('')
-				return []
-			environ[ 'REMOTE_USER' ] = remote_user
-			environ[ 'HTTP_COOKIE' ] = None
+		path_info = environ.get('PATH_INFO', '')
+		path_parts = filter(None, path_info.split('/'))
+		if len(path_parts) and path_parts[0] == 'login':
+			header = environ.get('HTTP_AUTHORIZATION')
+			if header:
+				remote_user = None
+				if header.startswith('Basic'):
+					remote_user = base64.b64decode(header[6:]).split(':')[0]
+				if not remote_user:
+					start_response('401 Unauthorized',
+						[('WWW-Authenticate', 'Basic realm="Secure Area"'),
+							('Content-Length', '0')])('')
+					return []
+
+				environ[ 'REMOTE_USER' ] = remote_user
+				environ[ 'HTTP_COOKIE' ] = None
 
 		return self.application(environ, start_response)
 
