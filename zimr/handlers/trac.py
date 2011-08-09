@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+from __future__ import absolute_import
 import os, sys, pkg_resources, urllib, base64
 from trac import __version__ as VERSION
 from trac.web.wsgi import WSGIGateway, _ErrorsWrapper
